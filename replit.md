@@ -4,6 +4,8 @@ This is a job management application built with a modern full-stack architecture
 
 **Recent Migration (August 1, 2025):** Successfully migrated from Bolt environment to Replit with proper client/server separation. All job operations are now handled through REST API endpoints with persistent backend storage instead of localStorage.
 
+**API Configuration Update (August 1, 2025):** Frontend configured to connect to external FastAPI backend at `https://jobtracker-backend-dwwh.onrender.com/api`. The external backend currently has `/api/ping` endpoint implemented.
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
