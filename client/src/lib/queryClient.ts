@@ -1,5 +1,7 @@
 import { QueryClient } from '@tanstack/react-query';
 
+const API_BASE_URL = "https://jobtracker-backend-dwwh.onrender.com/api";
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -13,7 +15,10 @@ export const queryClient = new QueryClient({
 
 // Default fetcher that works with our backend
 export const apiRequest = async (url: string, options?: RequestInit) => {
-  const response = await fetch(url, {
+  // If URL starts with /api, replace with full external URL
+  const fullUrl = url.startsWith('/api') ? url.replace('/api', API_BASE_URL) : url;
+  
+  const response = await fetch(fullUrl, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
