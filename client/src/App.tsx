@@ -13,9 +13,10 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch jobs from API
-  const { data: jobs = [], isLoading, error } = useQuery({
+  const { data: jobs = [], isLoading, error, refetch } = useQuery({
     queryKey: ['/api/jobs'],
     queryFn: () => apiRequest('/api/jobs'),
+    staleTime: 0, // Always consider data stale to ensure fresh data
   });
 
   // Create job mutation
@@ -26,6 +27,7 @@ function App() {
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
+      refetch(); // Force immediate refetch
       setShowForm(false);
       setEditingJob(undefined);
     },
@@ -40,6 +42,7 @@ function App() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
+      refetch(); // Force immediate refetch
       setShowForm(false);
       setEditingJob(undefined);
     },
@@ -52,6 +55,7 @@ function App() {
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
+      refetch(); // Force immediate refetch
     },
   });
 
