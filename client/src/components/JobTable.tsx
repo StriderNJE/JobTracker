@@ -1,14 +1,14 @@
-import React from 'react';
-import { Job } from '../types/Job';
-import { Edit, Trash2 } from 'lucide-react';
+import { Job } from '@shared/schema';
+import { Edit, Trash2, Loader2 } from 'lucide-react';
 
 interface JobTableProps {
   jobs: Job[];
   onEdit: (job: Job) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: number) => void;
+  isDeleting?: (id: number) => boolean;
 }
 
-export function JobTable({ jobs, onEdit, onDelete }: JobTableProps) {
+export function JobTable({ jobs, onEdit, onDelete, isDeleting }: JobTableProps) {
   if (jobs.length === 0) {
     return (
       <div className="text-center py-12 text-gray-500">
@@ -59,13 +59,13 @@ export function JobTable({ jobs, onEdit, onDelete }: JobTableProps) {
                 {job.jobRef}
               </td>
               <td className="px-4 py-3 text-sm text-gray-700">
-                {job.m2Area.toFixed(2)}
+                {parseFloat(job.m2Area).toFixed(2)}
               </td>
               <td className="px-4 py-3 text-sm text-gray-700">
-                {job.hoursWorked.toFixed(2)}
+                {parseFloat(job.hoursWorked).toFixed(2)}
               </td>
               <td className="px-4 py-3 text-sm text-gray-700">
-                £{job.designFee.toFixed(2)}
+                £{parseFloat(job.designFee).toFixed(2)}
               </td>
               <td className="px-4 py-3 text-sm text-gray-700">
                 <div className="flex gap-2">
@@ -78,10 +78,15 @@ export function JobTable({ jobs, onEdit, onDelete }: JobTableProps) {
                   </button>
                   <button
                     onClick={() => onDelete(job.id)}
-                    className="text-red-600 hover:text-red-800 transition-colors p-1"
+                    disabled={isDeleting?.(job.id)}
+                    className="text-red-600 hover:text-red-800 transition-colors p-1 disabled:opacity-50"
                     title="Delete job"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    {isDeleting?.(job.id) ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
               </td>

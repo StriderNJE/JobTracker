@@ -1,21 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Job } from '../types/Job';
-import { Save, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Job, InsertJob } from '@shared/schema';
+import { Save, X, Loader2 } from 'lucide-react';
 
 interface JobFormProps {
   job?: Job;
-  onSave: (job: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onSave: (job: InsertJob) => void;
   onCancel: () => void;
+  isLoading?: boolean;
 }
 
-export function JobForm({ job, onSave, onCancel }: JobFormProps) {
+export function JobForm({ job, onSave, onCancel, isLoading = false }: JobFormProps) {
   const [formData, setFormData] = useState({
     jobNumber: '',
     clientName: '',
     jobRef: '',
-    m2Area: 0,
-    hoursWorked: 0,
-    designFee: 0,
+    m2Area: '0',
+    hoursWorked: '0',
+    designFee: '0',
   });
 
   useEffect(() => {
@@ -24,9 +25,9 @@ export function JobForm({ job, onSave, onCancel }: JobFormProps) {
         jobNumber: job.jobNumber,
         clientName: job.clientName,
         jobRef: job.jobRef,
-        m2Area: job.m2Area,
-        hoursWorked: job.hoursWorked,
-        designFee: job.designFee,
+        m2Area: job.m2Area.toString(),
+        hoursWorked: job.hoursWorked.toString(),
+        designFee: job.designFee.toString(),
       });
     }
   }, [job]);
@@ -37,10 +38,10 @@ export function JobForm({ job, onSave, onCancel }: JobFormProps) {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : value,
+      [name]: value,
     }));
   };
 
@@ -153,15 +154,21 @@ export function JobForm({ job, onSave, onCancel }: JobFormProps) {
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+              disabled={isLoading}
+              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <Save className="w-4 h-4" />
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
               {job ? 'Update' : 'Save'}
             </button>
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition-colors"
+              disabled={isLoading}
+              className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
