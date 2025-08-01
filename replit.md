@@ -2,6 +2,8 @@
 
 This is a job management application built with a modern full-stack architecture. The system allows users to create, read, update, and delete job entries with fields including job number, client name, job reference, square meter area, hours worked, and design fees. The application features a clean, responsive interface for managing job data with search functionality and real-time updates.
 
+**Recent Migration (August 1, 2025):** Successfully migrated from Bolt environment to Replit with proper client/server separation. All job operations are now handled through REST API endpoints with persistent backend storage instead of localStorage.
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
