@@ -6,6 +6,8 @@ import { JobForm } from './components/JobForm';
 import { JobTable } from './components/JobTable';
 import { SearchBar } from './components/SearchBar';
 import { Plus, Briefcase, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import Login from './components/Login'; // Assuming you have this component
 
 function App() {
   const [showForm, setShowForm] = useState(false);
@@ -172,3 +174,59 @@ function App() {
 }
 
 export default App;
+
+
+function App() {
+    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+
+    useEffect(() => {
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            setIsLoggedIn(true);
+        }
+    }, []);
+
+    const handleLoginSuccess = () => {
+        setIsLoggedIn(true);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('access_token');
+        setIsLoggedIn(false);
+    };
+
+    return (
+        <div className="App">
+            {isLoggedIn ? (
+                <>
+                    <h1>Welcome to your Job Tracker!</h1>
+                    <button onClick={handleLogout}>Logout</button>
+                    {/* All of your main application components (e.g., job forms, job list) will go here */}
+                </>
+            ) : (
+                <Login onLoginSuccess={handleLoginSuccess} />
+            )}
+        </div>
+    );
+}
+
+export default App;
+You will also need to update your Login component to a TypeScript file (Login.tsx). The main change will be to define the type for the onLoginSuccess prop.
+
+In your Login.tsx file, the component signature should be updated like this:
+
+TypeScript
+
+import React, { useState } from 'react';
+
+// Define the type for the props this component will receive
+interface LoginProps {
+    onLoginSuccess: () => void;
+}
+
+// Update the component to use the props
+const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
+    // ... rest of the component code
+};
+
+export default Login;
