@@ -70,142 +70,86 @@ function App() {
     );
   }, [jobs, searchTerm]);
 
-const handleSaveJob = async (jobData: any) => {
-  try {
-    if (editingJob) {
-      await updateJobMutation.mutateAsync({ id: editingJob.id, data: jobData });
-      console.log("Job updated successfully");
-    } else {
-      await createJobMutation.mutateAsync(jobData);
-      console.log("Job created successfully");
-    }
-    // Close form & clear editing job
-    setShowForm(false);
-    setEditingJob(undefined);
-    // Refetch jobs list explicitly
-    refetch();
-  } catch (error) {
-    console.error("Failed to save job:", error);
-    alert("Failed to save job. Please check console for details.");
-  }
-};
+  const handleSaveJob = async (formData: any) => {
+    // Convert numeric fields to numbers before sending to backend
+    const jobData = {
+      jobNumber: formData.jobNumber,
+      clientName: formData.clientName,
+      jobRef: formData.jobRef,
+      m2Area: parseFloat(formData.m2Area),
+      hoursWorked: parseFloat(formData.hoursWorked),
+      designFee: parseFloat(formData.designFee),
+    };
 
-  const handleEditJob = (job: Job) => {
-    setEditingJob(job);
-    setShowForm(true);
+    try {
+      if (editingJob) {
+        await updateJobMutation.mutateAsync({ id: editingJob.id, data: jobData });
+        console.log("Job updated successfully");
+      } else {
+        await createJobMutation.mutateAsync(jobData);
+        console.log("Job created successfully");
+      }
+      setShowForm(false);
+      setEditingJob(undefined);
+      refetch();
+    } catch (error) {
+      console.error("Failed to save job:", error);
+      alert("Failed to save job. Please check console for details.");
+    }
   };
 
   const handleDeleteJob = (id: number) => {
-    if (window.confirm('Are you sure you want to delete this job entry?')) {
+    if (confirm('Are you sure you want to delete this job?')) {
       deleteJobMutation.mutate(id);
     }
   };
 
-  const handleCancelForm = () => {
-    setShowForm(false);
-    setEditingJob(undefined);
-  };
-
-  // Calculate totals - handle decimal fields properly
-  const totalDesignFees = jobs.reduce((sum: number, job: Job) => sum + parseFloat(job.designFee || '0'), 0);
-  const totalHours = jobs.reduce((sum: number, job: Job) => sum + parseFloat(job.hoursWorked || '0'), 0);
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-2">Error Loading Jobs</h1>
-          <p className="text-gray-600">{error.message}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Briefcase className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Job Entry Tracker</h1>
-          </div>
-          
-          {/* Summary Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <div className="text-sm font-medium text-gray-500">Total Jobs</div>
-              <div className="text-2xl font-bold text-gray-900">
-                {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : jobs.length}
-              </div>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <div className="text-sm font-medium text-gray-500">Total Hours</div>
-              <div className="text-2xl font-bold text-gray-900">
-                {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : totalHours.toFixed(2)}
-              </div>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <div className="text-sm font-medium text-gray-500">Total Design Fees</div>
-              <div className="text-2xl font-bold text-gray-900">
-                {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : `£${totalDesignFees.toFixed(2)}`}
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <header className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <Briefcase className="w-8 h-8" />
+          Job Tracker
+        </h1>
+        <button
+          onClick={() => {
+            setEditingJob(undefined);
+            setShowForm(true);
+          }}
+          className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700 transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          Add Job
+        </button>
+      </header>
 
-        {/* Controls */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="flex-1">
-            <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
-          </div>
-          <button
-            onClick={() => setShowForm(true)}
-            disabled={createJobMutation.isPending}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2 whitespace-nowrap disabled:opacity-50"
-          >
-            {createJobMutation.isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Plus className="w-4 h-4" />
-            )}
-            Add New Job
-          </button>
-        </div>
+      <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
-        {/* Job Table */}
-        <div className="bg-white rounded-lg shadow-sm border">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-              <span className="ml-2 text-gray-600">Loading jobs...</span>
-            </div>
-          ) : (
-            <JobTable
-              jobs={filteredJobs}
-              onEdit={handleEditJob}
-              onDelete={handleDeleteJob}
-              isDeleting={(id: number) => deleteJobMutation.isPending && deleteJobMutation.variables === id}
-            />
-          )}
+      {isLoading ? (
+        <div className="flex justify-center py-10">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
         </div>
+      ) : error ? (
+        <p className="text-red-600 text-center">Failed to load jobs.</p>
+      ) : (
+        <JobTable
+          jobs={filteredJobs}
+          onEdit={(job) => {
+            setEditingJob(job);
+            setShowForm(true);
+          }}
+          onDelete={handleDeleteJob}
+        />
+      )}
 
-        {/* Job Form Modal */}
-        {showForm && (
-          <JobForm
-            job={editingJob}
-            onSave={handleSaveJob}
-            onCancel={handleCancelForm}
-            isLoading={createJobMutation.isPending || updateJobMutation.isPending}
-          />
-        )}
-      </div>
+      {showForm && (
+        <JobForm
+          job={editingJob}
+          onSave={handleSaveJob}
+          onCancel={() => setShowForm(false)}
+          isLoading={createJobMutation.isLoading || updateJobMutation.isLoading}
+        />
+      )}
     </div>
   );
 }
