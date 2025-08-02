@@ -62,19 +62,9 @@ def get_db():
         db.close()
 
 @app.post("/api/jobs/", response_model=JobCreate)
-async def create_job(request: Request, db: Session = Depends(get_db)):
-    try:
-        data = await request.json()
-        logger.info(f"Received job create request data: {data}")
-
-        job_in = JobCreate(**data)  # Pydantic validation
-    except ValidationError as ve:
-        logger.error(f"Validation error: {ve.errors()}")
-        raise HTTPException(status_code=422, detail=ve.errors())
-    except Exception as e:
-        logger.error(f"Error parsing request data: {e}")
-        raise HTTPException(status_code=400, detail="Invalid request")
-
+async def create_job(job_in: JobCreate, db: Session = Depends(get_db)):
+    logger.info(f"Received job create request data: {job_in.model_dump_json()}")
+    
     db_job = Job(
         jobNumber=job_in.jobNumber,
         clientName=job_in.clientName,
