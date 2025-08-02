@@ -211,22 +211,3 @@ function App() {
 }
 
 export default App;
-You will also need to update your Login component to a TypeScript file (Login.tsx). The main change will be to define the type for the onLoginSuccess prop.
-
-In your Login.tsx file, the component signature should be updated like this:
-
-TypeScript
-
-import React, { useState } from 'react';
-
-// Define the type for the props this component will receive
-interface LoginProps {
-    onLoginSuccess: () => void;
-}
-
-// Update the component to use the props
-const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
-    // ... rest of the component code
-};
-
-export default Login;
