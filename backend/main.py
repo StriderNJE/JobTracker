@@ -1,57 +1,58 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError, condecimal
 from typing import List
-
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
-
 import os
+import logging
 
-# Get database URL from environment variable
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise Exception("DATABASE_URL environment variable not set")
 
-# SQLAlchemy setup
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# Job model
 class Job(Base):
     __tablename__ = "jobs"
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, index=True)
-    description = Column(String, nullable=True)
+    jobNumber = Column(String, nullable=False)
+    clientName = Column(String, nullable=False)
+    jobRef = Column(String, nullable=False)
+    m2Area = Column(Float, nullable=False)
+    hoursWorked = Column(Float, nullable=False)
+    designFee = Column(Float, nullable=False)
 
-# Create tables if not exist
 Base.metadata.create_all(bind=engine)
 
-# Pydantic schemas
 class JobCreate(BaseModel):
-    title: str
-    description: str = None
-
-class JobRead(JobCreate):
-    id: int
+    jobNumber: str
+    clientName: str
+    jobRef: str
+    m2Area: condecimal(gt=0)
+    hoursWorked: condecimal(gt=0)
+    designFee: condecimal(gt=0)
 
     class Config:
-        orm_mode = True
+        anystr_strip_whitespace = True
 
 app = FastAPI()
 
-# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change this in production to your frontend domain
+    allow_origins=["*"],  # Adjust for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Dependency to get DB session
 def get_db():
     db = SessionLocal()
     try:
@@ -59,19 +60,29 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/api/ping")
-def ping():
-    return {"message": "Backend is alive!"}
+@app.post("/api/jobs/", response_model=JobCreate)
+async def create_job(request: Request, db: Session = Depends(get_db)):
+    try:
+        data = await request.json()
+        logger.info(f"Received job create request data: {data}")
 
-@app.post("/api/jobs/", response_model=JobRead)
-def create_job(job: JobCreate, db: Session = Depends(get_db)):
-    db_job = Job(title=job.title, description=job.description)
+        job_in = JobCreate(**data)  # Pydantic validation
+    except ValidationError as ve:
+        logger.error(f"Validation error: {ve.errors()}")
+        raise HTTPException(status_code=422, detail=ve.errors())
+    except Exception as e:
+        logger.error(f"Error parsing request data: {e}")
+        raise HTTPException(status_code=400, detail="Invalid request")
+
+    db_job = Job(
+        jobNumber=job_in.jobNumber,
+        clientName=job_in.clientName,
+        jobRef=job_in.jobRef,
+        m2Area=float(job_in.m2Area),
+        hoursWorked=float(job_in.hoursWorked),
+        designFee=float(job_in.designFee),
+    )
     db.add(db_job)
     db.commit()
     db.refresh(db_job)
     return db_job
-
-@app.get("/api/jobs/", response_model=List[JobRead])
-def read_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    jobs = db.query(Job).offset(skip).limit(limit).all()
-    return jobs
