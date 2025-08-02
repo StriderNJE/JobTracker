@@ -25,7 +25,7 @@ if not DATABASE_URL:
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_declarative()
+Base = declarative_base()
 
 # --- PASSWORD HASHING CONTEXT ---
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
