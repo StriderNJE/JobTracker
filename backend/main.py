@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker, Session
 
 import os
 
-# DATABASE_URL should be set as an environment variable on Render
+# Get database URL from environment variable
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise Exception("DATABASE_URL environment variable not set")
@@ -19,7 +19,7 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# Database model
+# Job model
 class Job(Base):
     __tablename__ = "jobs"
     id = Column(Integer, primary_key=True, index=True)
@@ -42,10 +42,10 @@ class JobRead(JobCreate):
 
 app = FastAPI()
 
-# CORS setup
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For production, restrict to your frontend domain
+    allow_origins=["*"],  # Change this in production to your frontend domain
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
