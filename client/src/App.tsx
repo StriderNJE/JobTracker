@@ -70,13 +70,25 @@ function App() {
     );
   }, [jobs, searchTerm]);
 
-  const handleSaveJob = (jobData: any) => {
+const handleSaveJob = async (jobData: any) => {
+  try {
     if (editingJob) {
-      updateJobMutation.mutate({ id: editingJob.id, data: jobData });
+      await updateJobMutation.mutateAsync({ id: editingJob.id, data: jobData });
+      console.log("Job updated successfully");
     } else {
-      createJobMutation.mutate(jobData);
+      await createJobMutation.mutateAsync(jobData);
+      console.log("Job created successfully");
     }
-  };
+    // Close form & clear editing job
+    setShowForm(false);
+    setEditingJob(undefined);
+    // Refetch jobs list explicitly
+    refetch();
+  } catch (error) {
+    console.error("Failed to save job:", error);
+    alert("Failed to save job. Please check console for details.");
+  }
+};
 
   const handleEditJob = (job: Job) => {
     setEditingJob(job);
