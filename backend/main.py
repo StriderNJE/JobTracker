@@ -107,4 +107,8 @@ def read_jobs(db: Session = Depends(get_db)):
         designFee=job.designFee
     ) for job in jobs]
 
+from flask import Flask
+from flask_cors import CORS
 
+app = Flask(__name__)
+CORS(app) # Enable CORS for all routes and origins
