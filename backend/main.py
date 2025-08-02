@@ -87,3 +87,7 @@ async def create_job(request: Request, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_job)
     return db_job
+    
+@app.get("/api/ping")
+def ping():
+    return {"message": "Backend is alive!"}
