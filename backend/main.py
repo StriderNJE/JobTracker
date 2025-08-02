@@ -2,9 +2,10 @@ from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ValidationError, condecimal
 from typing import List
-from sqlalchemy import create_engine, Column, Integer, String, Float
+from sqlalchemy import create_engine, Column, Integer, String, DECIMAL, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
+from decimal import Decimal
 import os
 import logging
 
@@ -26,9 +27,10 @@ class Job(Base):
     jobNumber = Column(String, nullable=False)
     clientName = Column(String, nullable=False)
     jobRef = Column(String, nullable=False)
-    m2Area = Column(Float, nullable=False)
-    hoursWorked = Column(Float, nullable=False)
-    designFee = Column(Float, nullable=False)
+    # Changed from Float to DECIMAL for better precision with monetary/area values
+    m2Area = Column(DECIMAL, nullable=False)
+    hoursWorked = Column(DECIMAL, nullable=False)
+    designFee = Column(DECIMAL, nullable=False)
 
 Base.metadata.create_all(bind=engine)
 
@@ -69,9 +71,9 @@ async def create_job(job_in: JobCreate, db: Session = Depends(get_db)):
         jobNumber=job_in.jobNumber,
         clientName=job_in.clientName,
         jobRef=job_in.jobRef,
-        m2Area=float(job_in.m2Area),
-        hoursWorked=float(job_in.hoursWorked),
-        designFee=float(job_in.designFee),
+        m2Area=job_in.m2Area, # No need to cast to float
+        hoursWorked=job_in.hoursWorked,
+        designFee=job_in.designFee,
     )
     db.add(db_job)
     db.commit()
@@ -82,21 +84,21 @@ async def create_job(job_in: JobCreate, db: Session = Depends(get_db)):
 def ping():
     return {"message": "Backend is alive!"}
 
-from fastapi import Response
 
 @app.get("/api/jobs/", response_model=List[JobCreate])
 def read_jobs(db: Session = Depends(get_db)):
     jobs = db.query(Job).all()
-    # Convert SQLAlchemy models to Pydantic schema
     return [JobCreate(
         jobNumber=job.jobNumber,
         clientName=job.clientName,
         jobRef=job.jobRef,
-        m2Area=job.m2Area,
-        hoursWorked=job.hoursWorked,
-        designFee=job.designFee
+        m2Area=Decimal(job.m2Area), # Convert to Decimal for the Pydantic model
+        hoursWorked=Decimal(job.hoursWorked),
+        designFee=Decimal(job.designFee)
     ) for job in jobs]
 
+
+# This is the temporary route to fix the database schema
 @app.get("/api/db-fix")
 def drop_jobs_table(db: Session = Depends(get_db)):
     try:
