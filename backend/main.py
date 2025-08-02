@@ -36,9 +36,9 @@ class JobCreate(BaseModel):
     jobNumber: str
     clientName: str
     jobRef: str
-    m2Area: condecimal(gt=0)
-    hoursWorked: condecimal(gt=0)
-    designFee: condecimal(gt=0)
+    m2Area: condecimal()
+    hoursWorked: condecimal()
+    designFee: condecimal()
 
     class Config:
         anystr_strip_whitespace = True
