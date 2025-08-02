@@ -121,3 +121,23 @@ def read_jobs(db: Session = Depends(get_db)):
         hoursWorked=Decimal(job.hoursWorked),
         designFee=Decimal(job.designFee)
     ) for job in jobs]
+
+# --- NEW ROUTE FOR USER REGISTRATION ---
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+@app.post("/api/register", response_model=UserCreate)
+def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    # Check if a user with this email already exists
+    db_user = db.query(User).filter(User.email == user.email).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    # Hash the password and create a new user
+    hashed_password = get_password_hash(user.password)
+    db_user = User(email=user.email, hashed_password=hashed_password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+# --- END NEW ROUTE ---
