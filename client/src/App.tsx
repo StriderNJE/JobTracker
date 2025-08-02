@@ -16,18 +16,19 @@ function App() {
   const { data: jobs = [], isLoading, error, refetch } = useQuery({
     queryKey: ['/api/jobs'],
     queryFn: () => apiRequest('/api/jobs'),
-    staleTime: 0, // Always consider data stale to ensure fresh data
+    staleTime: 0,
   });
 
   // Create job mutation
   const createJobMutation = useMutation({
-    mutationFn: (jobData: any) => apiRequest('/api/jobs', {
-      method: 'POST',
-      body: JSON.stringify(jobData),
-    }),
+    mutationFn: (jobData: any) =>
+      apiRequest('/api/jobs', {
+        method: 'POST',
+        body: JSON.stringify(jobData),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
-      refetch(); // Force immediate refetch
+      refetch();
       setShowForm(false);
       setEditingJob(undefined);
     },
@@ -35,14 +36,14 @@ function App() {
 
   // Update job mutation
   const updateJobMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => 
+    mutationFn: ({ id, data }: { id: number; data: any }) =>
       apiRequest(`/api/jobs/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
-      refetch(); // Force immediate refetch
+      refetch();
       setShowForm(false);
       setEditingJob(undefined);
     },
@@ -50,28 +51,29 @@ function App() {
 
   // Delete job mutation
   const deleteJobMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/jobs/${id}`, {
-      method: 'DELETE',
-    }),
+    mutationFn: (id: number) =>
+      apiRequest(`/api/jobs/${id}`, {
+        method: 'DELETE',
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
-      refetch(); // Force immediate refetch
+      refetch();
     },
   });
 
   const filteredJobs = useMemo(() => {
     if (!searchTerm) return jobs;
-    
+
     const term = searchTerm.toLowerCase();
-    return jobs.filter((job: Job) =>
-      job.jobNumber.toLowerCase().includes(term) ||
-      job.clientName.toLowerCase().includes(term) ||
-      job.jobRef.toLowerCase().includes(term)
+    return jobs.filter(
+      (job: Job) =>
+        job.jobNumber.toLowerCase().includes(term) ||
+        job.clientName.toLowerCase().includes(term) ||
+        job.jobRef.toLowerCase().includes(term)
     );
   }, [jobs, searchTerm]);
 
   const handleSaveJob = async (formData: any) => {
-    // Convert numeric fields to numbers before sending to backend
     const jobData = {
       jobNumber: formData.jobNumber,
       clientName: formData.clientName,
@@ -81,20 +83,35 @@ function App() {
       designFee: parseFloat(formData.designFee),
     };
 
+    console.log('Saving job with data:', jobData);
+
+    // Validate all required fields
+    for (const [key, value] of Object.entries(jobData)) {
+      if (
+        value === undefined ||
+        value === null ||
+        (typeof value === 'string' && value.trim() === '') ||
+        (typeof value === 'number' && isNaN(value))
+      ) {
+        alert(`Invalid or missing value for ${key}`);
+        return;
+      }
+    }
+
     try {
       if (editingJob) {
         await updateJobMutation.mutateAsync({ id: editingJob.id, data: jobData });
-        console.log("Job updated successfully");
+        console.log('Job updated successfully');
       } else {
         await createJobMutation.mutateAsync(jobData);
-        console.log("Job created successfully");
+        console.log('Job created successfully');
       }
       setShowForm(false);
       setEditingJob(undefined);
       refetch();
     } catch (error) {
-      console.error("Failed to save job:", error);
-      alert("Failed to save job. Please check console for details.");
+      console.error('Failed to save job:', error);
+      alert('Failed to save job. Please check console for details.');
     }
   };
 
