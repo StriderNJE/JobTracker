@@ -48,7 +48,7 @@ app = FastAPI()
 # Update CORS middleware to allow only your frontend domain
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://job-tracker-n66j.vercel.app"],  # <-- Replace with your actual frontend URL
+    allow_origins=["*"],  # <-- Replace with your actual frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
