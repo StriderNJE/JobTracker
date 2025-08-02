@@ -97,3 +97,12 @@ def read_jobs(db: Session = Depends(get_db)):
         designFee=job.designFee
     ) for job in jobs]
 
+@app.get("/api/db-fix")
+def drop_jobs_table(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("DROP TABLE jobs;"))
+        db.commit()
+        return {"message": "Successfully dropped the jobs table."}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
