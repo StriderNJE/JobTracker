@@ -91,3 +91,20 @@ async def create_job(request: Request, db: Session = Depends(get_db)):
 @app.get("/api/ping")
 def ping():
     return {"message": "Backend is alive!"}
+
+from fastapi import Response
+
+@app.get("/api/jobs/", response_model=List[JobCreate])
+def read_jobs(db: Session = Depends(get_db)):
+    jobs = db.query(Job).all()
+    # Convert SQLAlchemy models to Pydantic schema
+    return [JobCreate(
+        jobNumber=job.jobNumber,
+        clientName=job.clientName,
+        jobRef=job.jobRef,
+        m2Area=job.m2Area,
+        hoursWorked=job.hoursWorked,
+        designFee=job.designFee
+    ) for job in jobs]
+
+
