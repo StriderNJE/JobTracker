@@ -19,19 +19,20 @@ const MainAppContent: React.FC<MainAppContentProps> = ({ isLoggedIn, handleLogou
     const [searchTerm, setSearchTerm] = useState('');
 
     const { data: jobs = [], isLoading, error, refetch } = useQuery({
-        queryKey: ['/api/jobs'],
-        queryFn: () => apiRequest('/api/jobs'),
-        enabled: isLoggedIn, // <-- NEW: Only fetch if the user is logged in
+        // Updated query key to include a trailing slash for consistency with backend
+        queryKey: ['/api/jobs/'],
+        queryFn: () => apiRequest('/api/jobs/'),
+        enabled: isLoggedIn, // <-- This is the key change. Only fetch if the user is logged in.
     });
 
     const createJobMutation = useMutation({
         mutationFn: (jobData: any) =>
-            apiRequest('/api/jobs', {
+            apiRequest('/api/jobs/', {
                 method: 'POST',
                 body: JSON.stringify(jobData),
             }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/jobs/'] });
             refetch();
             setShowForm(false);
             setEditingJob(undefined);
@@ -40,12 +41,12 @@ const MainAppContent: React.FC<MainAppContentProps> = ({ isLoggedIn, handleLogou
 
     const updateJobMutation = useMutation({
         mutationFn: ({ id, data }: { id: number; data: any }) =>
-            apiRequest(`/api/jobs/${id}`, {
+            apiRequest(`/api/jobs/${id}/`, { // Added trailing slash
                 method: 'PUT',
                 body: JSON.stringify(data),
             }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/jobs/'] });
             refetch();
             setShowForm(false);
             setEditingJob(undefined);
@@ -54,11 +55,11 @@ const MainAppContent: React.FC<MainAppContentProps> = ({ isLoggedIn, handleLogou
 
     const deleteJobMutation = useMutation({
         mutationFn: (id: number) =>
-            apiRequest(`/api/jobs/${id}`, {
+            apiRequest(`/api/jobs/${id}/`, { // Added trailing slash
                 method: 'DELETE',
             }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/jobs/'] });
             refetch();
         },
     });
@@ -90,6 +91,7 @@ const MainAppContent: React.FC<MainAppContentProps> = ({ isLoggedIn, handleLogou
                 (typeof value === 'string' && value.trim() === '') ||
                 (typeof value === 'number' && isNaN(value))
             ) {
+                // Using a custom modal or alert box is recommended
                 alert(`Invalid or missing value for ${key}`);
                 return;
             }
@@ -110,6 +112,7 @@ const MainAppContent: React.FC<MainAppContentProps> = ({ isLoggedIn, handleLogou
     };
 
     const handleDeleteJob = (id: number) => {
+        // Using a custom modal or alert box is recommended
         if (confirm('Are you sure you want to delete this job?')) {
             deleteJobMutation.mutate(id);
         }
