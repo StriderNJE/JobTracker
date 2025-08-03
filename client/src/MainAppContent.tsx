@@ -1,15 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Job } from '@shared/schema';
-import { queryClient, apiRequest } from './lib/queryClient'; // Import both
+import { queryClient, apiRequest } from './lib/queryClient';
 import { JobForm } from './components/JobForm';
 import { JobTable } from './components/JobTable';
 import { SearchBar } from './components/SearchBar';
 import { Plus, Briefcase, Loader2 } from 'lucide-react';
 
-// NEW: Define the props for this component
+// Define the props for this component
 interface MainAppContentProps {
-  isLoggedIn: boolean; // <-- NEW: Pass isLoggedIn as a prop
+  isLoggedIn: boolean;
   handleLogout: () => void;
 }
 
@@ -22,7 +22,7 @@ const MainAppContent: React.FC<MainAppContentProps> = ({ isLoggedIn, handleLogou
         // Updated query key to include a trailing slash for consistency with backend
         queryKey: ['/api/jobs/'],
         queryFn: () => apiRequest('/api/jobs/'),
-        enabled: isLoggedIn, // <-- This is the key change. Only fetch if the user is logged in.
+        enabled: isLoggedIn, // Only fetch if the user is logged in.
     });
 
     const createJobMutation = useMutation({
@@ -41,7 +41,7 @@ const MainAppContent: React.FC<MainAppContentProps> = ({ isLoggedIn, handleLogou
 
     const updateJobMutation = useMutation({
         mutationFn: ({ id, data }: { id: number; data: any }) =>
-            apiRequest(`/api/jobs/${id}/`, { // Added trailing slash
+            apiRequest(`/api/jobs/${id}/`, {
                 method: 'PUT',
                 body: JSON.stringify(data),
             }),
@@ -55,7 +55,7 @@ const MainAppContent: React.FC<MainAppContentProps> = ({ isLoggedIn, handleLogou
 
     const deleteJobMutation = useMutation({
         mutationFn: (id: number) =>
-            apiRequest(`/api/jobs/${id}/`, { // Added trailing slash
+            apiRequest(`/api/jobs/${id}/`, {
                 method: 'DELETE',
             }),
         onSuccess: () => {
