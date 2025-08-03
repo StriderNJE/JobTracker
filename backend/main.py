@@ -131,6 +131,15 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     return user
 # --- END NEW DEPENDENCY ---
 
+# NEW: Health check endpoint for the root URL
+@app.get("/")
+def read_root():
+    """
+    A simple endpoint to handle the health check from the hosting service.
+    """
+    return {"status": "ok"}
+
+
 # Your existing routes
 @app.post("/api/jobs/", response_model=JobCreate)
 async def create_job(job_in: JobCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -191,4 +200,3 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
         data={"sub": user.email}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
-
