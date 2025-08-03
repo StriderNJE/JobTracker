@@ -1,5 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 
+// Make sure the API_BASE_URL is correct
 const API_BASE_URL = "https://jobtracker-backend-dwwh.onrender.com/api";
 
 export const queryClient = new QueryClient({
