@@ -1,12 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Job } from '@shared/schema';
-import { queryClient } from './lib/queryClient';
+import { queryClient, apiRequest } from './lib/queryClient'; // Import both
 import { JobForm } from './components/JobForm';
 import { JobTable } from './components/JobTable';
 import { SearchBar } from './components/SearchBar';
 import { Plus, Briefcase, Loader2 } from 'lucide-react';
-import { apiRequest } from './App';
 
 // NEW: Define the props for this component
 interface MainAppContentProps {
