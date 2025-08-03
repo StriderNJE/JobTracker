@@ -1,41 +1,57 @@
 import React, { useState, useEffect } from 'react';
-import Login from './components/Login';
+import jwt_decode from 'jwt-decode';
+import Login from './components/login';
 import MainAppContent from './MainAppContent';
-import { apiRequest } from './lib/queryClient'; // Import apiRequest from the centralized location
+
+interface JwtPayload {
+  exp: number;
+}
 
 function App() {
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
-    // Use a useEffect hook to check for the token when the component mounts
-    useEffect(() => {
-        const token = localStorage.getItem('access_token');
-        if (token) {
-            setIsLoggedIn(true);
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+
+    if (token) {
+      try {
+        const decoded = jwt_decode<JwtPayload>(token);
+        // Check if token is expired (exp is in seconds)
+        if (decoded.exp * 1000 > Date.now()) {
+          setIsLoggedIn(true);
+        } else {
+          // Token expired
+          localStorage.removeItem('access_token');
+          setIsLoggedIn(false);
         }
-    }, []);
-
-    // Callback function to set isLoggedIn to true after a successful login
-    const handleLoginSuccess = () => {
-        setIsLoggedIn(true);
-    };
-
-    // Callback function to handle logout
-    const handleLogout = () => {
+      } catch (error) {
+        // Invalid token format
         localStorage.removeItem('access_token');
         setIsLoggedIn(false);
-    };
+      }
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, []);
 
-    return (
-        <div className="App">
-            {isLoggedIn ? (
-                // If logged in, render the main application content and pass the isLoggedIn state
-                <MainAppContent isLoggedIn={isLoggedIn} handleLogout={handleLogout} />
-            ) : (
-                // If not logged in, render the login form
-                <Login onLoginSuccess={handleLoginSuccess} />
-            )}
-        </div>
-    );
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('access_token');
+    setIsLoggedIn(false);
+  };
+
+  return (
+    <div className="App">
+      {isLoggedIn ? (
+        <MainAppContent isLoggedIn={isLoggedIn} handleLogout={handleLogout} />
+      ) : (
+        <Login onLoginSuccess={handleLoginSuccess} />
+      )}
+    </div>
+  );
 }
 
 export default App;
