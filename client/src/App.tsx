@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
-import MainAppContent from './MainAppContent'; // Import the new component
+import MainAppContent from './MainAppContent';
 import { apiRequest } from './lib/queryClient'; // Import apiRequest from the centralized location
 
 function App() {
@@ -28,7 +28,7 @@ function App() {
     return (
         <div className="App">
             {isLoggedIn ? (
-                // If logged in, render the main application content
+                // If logged in, render the main application content and pass the isLoggedIn state
                 <MainAppContent isLoggedIn={isLoggedIn} handleLogout={handleLogout} />
             ) : (
                 // If not logged in, render the login form
