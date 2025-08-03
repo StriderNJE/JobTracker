@@ -6,14 +6,15 @@ import { JobForm } from './components/JobForm';
 import { JobTable } from './components/JobTable';
 import { SearchBar } from './components/SearchBar';
 import { Plus, Briefcase, Loader2 } from 'lucide-react';
-import { apiRequest } from './App'; // Import apiRequest from App.tsx
+import { apiRequest } from './App';
 
 // NEW: Define the props for this component
 interface MainAppContentProps {
+  isLoggedIn: boolean; // <-- NEW: Pass isLoggedIn as a prop
   handleLogout: () => void;
 }
 
-const MainAppContent: React.FC<MainAppContentProps> = ({ handleLogout }) => {
+const MainAppContent: React.FC<MainAppContentProps> = ({ isLoggedIn, handleLogout }) => {
     const [showForm, setShowForm] = useState(false);
     const [editingJob, setEditingJob] = useState<Job | undefined>();
     const [searchTerm, setSearchTerm] = useState('');
@@ -21,6 +22,7 @@ const MainAppContent: React.FC<MainAppContentProps> = ({ handleLogout }) => {
     const { data: jobs = [], isLoading, error, refetch } = useQuery({
         queryKey: ['/api/jobs'],
         queryFn: () => apiRequest('/api/jobs'),
+        enabled: isLoggedIn, // <-- NEW: Only fetch if the user is logged in
     });
 
     const createJobMutation = useMutation({
