@@ -1,57 +1,84 @@
-import React, { useState, useEffect } from 'react';
-import jwt_decode from 'jwt-decode';
-import Login from './components/login';
-import MainAppContent from './MainAppContent';
+// src/App.tsx
+import React, { useEffect, useState } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+} from "react-router-dom";
+import jwt_decode from "jwt-decode";
+import Login from "./components/login";
+import MainAppContent from "./MainAppContent";
 
 interface JwtPayload {
   exp: number;
 }
 
-function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+function RequireAuth({ children }: { children: JSX.Element }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-
+    const token = localStorage.getItem("access_token");
     if (token) {
       try {
         const decoded = jwt_decode<JwtPayload>(token);
-        // Check if token is expired (exp is in seconds)
         if (decoded.exp * 1000 > Date.now()) {
-          setIsLoggedIn(true);
-        } else {
-          // Token expired
-          localStorage.removeItem('access_token');
-          setIsLoggedIn(false);
+          setIsAuthenticated(true);
+          return;
         }
-      } catch (error) {
-        // Invalid token format
-        localStorage.removeItem('access_token');
-        setIsLoggedIn(false);
+      } catch {
+        // Invalid token
       }
-    } else {
-      setIsLoggedIn(false);
     }
+    setIsAuthenticated(false);
   }, []);
 
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/login" element={<LoginWrapper />} />
+        <Route
+          path="/data-entry"
+          element={
+            <RequireAuth>
+              <MainAppContentWrapper />
+            </RequireAuth>
+          }
+        />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </Router>
+  );
+}
+
+function LoginWrapper() {
+  const navigate = useNavigate();
+
   const handleLoginSuccess = () => {
-    setIsLoggedIn(true);
+    navigate("/data-entry", { replace: true });
   };
+
+  return <Login onLoginSuccess={handleLoginSuccess} />;
+}
+
+function MainAppContentWrapper() {
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    setIsLoggedIn(false);
+    localStorage.removeItem("access_token");
+    navigate("/login", { replace: true });
   };
 
-  return (
-    <div className="App">
-      {isLoggedIn ? (
-        <MainAppContent isLoggedIn={isLoggedIn} handleLogout={handleLogout} />
-      ) : (
-        <Login onLoginSuccess={handleLoginSuccess} />
-      )}
-    </div>
-  );
+  return <MainAppContent isLoggedIn={true} handleLogout={handleLogout} />;
 }
 
 export default App;
